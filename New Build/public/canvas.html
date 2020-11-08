@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" 
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" 
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
+        </script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" 
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+        </script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://unpkg.com/konva@7.0.3/konva.min.js"></script>
+        <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
+        <link rel="stylesheet" href="canvas.css">
+        <link rel="icon" href="Assets/Whiteboard.png" type="image/png" sizes="32x32">
+        <title>Workspace</title>
+    </head>
+    <body>
+        <!-- Navbar -->
+        <nav class="navbar navbar-dark bg-primary">
+            <span class="navbar-brand" >Intelligent Whiteboard</span>
+            <button type="button" class="btn btn-primary ml-auto" data-toggle="modal" data-target="#Help">
+                <i class="fa fa-info-circle mr-2" aria-hidden="true"></i>Help
+            </button>
+            <div class="modal fade" id="Help" tabindex="-1" aria-labelledby="HelpLabel" aria-hidden="true">
+                <div class="modal-dialog" id="help">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">General Instructions</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5> Note - General</h5>
+                        <ul>
+                            <li>To <strong>Delete an item right click on the item </strong>to get delete option</li>
+                            <li>Your progress will not be saved when participants become zero. You can<strong> Download your work for future use</strong></li>
+                        </ul>
+                        <h5>Select</h5>
+                        <div>
+                            <ul>
+                                <li> Default mode </li>
+                                <li> Drag in this mode </li>
+                            </ul>
+                        </div>
+                        <h5>Brush</h5>
+                        <div>
+                            <ul>
+                                <li> <strong><u>Click and Drag mouse</u></strong> over whiteboard alone to draw shapes </li>
+                                <li> Open side dropup menu to change line strokewidth and color </li>
+                            </ul>
+                        </div>
+                        <h5>Text</h5>
+                        <div>
+                            <ul>
+                                <li> <strong><u>Click on</u></strong> whiteboard to add Default text </li>
+                                <li> Open side dropup menu to change font size and color </li>
+                                <li> To edit text <strong><u>Double Click</u></strong> on text</li>
+                                <li> To exit edit mode press <strong><u>Enter</u></strong> </li>
+                            </ul>
+                        </div>
+                        <h5>Image</h5>
+                        <div>
+                            <ul>
+                                <li> <strong><u>Choose image from system</u></strong> on modal open and press add to get image onto whiteboard </li>
+                                <li> <strong>Press on small white box to get image rendered</strong></li>
+                                <li> <strong>Drag the image to get resize/rotate transform</strong></li>
+                            </ul>
+                        </div>
+                        <h5>Flowchart</h5>
+                        <div>
+                            <ul>
+                                <li> <strong><u>Select shape</u></strong> in dropup</li>
+                                <li> After selecting <strong><u>Hold and drag mouse click</u></strong> of desired shape</li>
+                                <li> After adding shape use <strong>text mode to write text over shapes</strong></li>
+                            </ul>
+                        </div>
+                        <h5>OCR</h5>
+                        <div>
+                            <ul>
+                                <li><strong>Write text content on the canvas</strong> when modal opens</li>
+                                <li>Press convert and <strong>wait for the recognized text </strong>to get directly added to the whiteboard</li>
+                                <li>Use <strong>clear canvas to write new text</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Konva Canvas -->
+        <div id='canvas' class="mt-1 mb-1"></div>
+
+        <!-- Menu -->
+        <div id="menu">
+            <button id="delete-button">Delete</button>
+        </div>
+
+        <!-- Button Group -->
+        <div class="d-flex justify-content-center">
+            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group btn-group-lg" role="group" aria-label="Main Group">
+                    <!-- Select button -->
+                    <button type="button" class="btn btn-outline-primary" id='select' onclick="toolbarSelect(0)">
+                        <i class="fa fa-mouse-pointer" aria-hidden="true"></i><div>Select</div>
+                    </button>
+
+                    <!-- Brush Button -->
+                    <div class="btn-group btn-group-lg dropup" role='group'>
+                        <button type="button" class="btn btn-outline-primary" id="brush" onclick="toolbarSelect(1)">
+                            <i class="fa fa-paint-brush" aria-hidden="true"></i><div>Brush</div>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" 
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="brushdropdown">
+                            <span class="dropdown-item">Stroke width
+                                <input type="text" id="stroke_width" value="5"/>
+                            </span>
+                            <div class="dropdown-divider"></div>
+                            <span class="dropdown-item">Brush Color
+                                <input type="color" id="stroke_color" value="#ff0000">
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Text Button -->
+                    <div class="btn-group btn-group-lg dropup" role='group'>
+                        <button type="button" class="btn btn-outline-primary" id="text" onclick="toolbarSelect(2)">
+                            <i class="fa fa-font" aria-hidden="true"></i><div>Text</div>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" 
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="textdropdown">
+                            <span class="dropdown-item">Font Size
+                                <input type="text" id="font_size" value="20"/>
+                            </span>
+                            <div class="dropdown-divider"></div>
+                            <span class="dropdown-item">Font color
+                                <input type="color" id="font_color" value="#000000">
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Add Image -->
+                    <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#addImage">
+                        <i class="fa fa-file-image-o" aria-hidden="true"></i><div>Image</div>
+                    </button>
+                    <div class="modal fade" id="addImage" tabindex="-1" aria-labelledby="HelpLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Add Image</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="file" name="filename" 
+                                    accept="image/jpeg, image/png" onchange="readURL(this)"/>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="addImage()">Add</button>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+
+                    <!-- Flowchart -->
+                    <div class="btn-group btn-group-lg dropup" role="group">
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" 
+                        aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-sitemap mr-2" aria-hidden="true"></i>Shapes
+                        </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" onclick="drawShape(3,'rect')">
+                                <img src="Assets/process.png" width="80" height="50" alt="process"/> 
+                            </button>
+                            <button class="dropdown-item" onclick="drawShape(3,'oval')">
+                                <img src="Assets/start_end.png" width="80" height="50" alt="start_end"/>
+                            </button>
+                            <button class="dropdown-item" onclick="drawShape(3,'rhombus')">
+                                <img src="Assets/decision.png" width="80" height="80" alt="decision"/>
+                            </button>
+                            <button class="dropdown-item" onclick="drawShape(3,'paragm')">
+                                <img src="Assets/data.png" width="80" height="50" alt="data"/>
+                            </button>
+                            <button class="dropdown-item" onclick="drawShape(3,'arrow')">
+                                <img src="Assets/arrow.png" width="80" height="50" alt="arrow"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- OCR Button -->
+                    <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#ocr">
+                        <i class="fa fa-file-text-o" aria-hidden="true"></i><div>Pen to Print</div>
+                    </button>
+                    <div class="modal fade" id="ocr" tabindex="-1" aria-labelledby="HelpLabel" aria-hidden="true">
+                        <div class="modal-dialog dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Writing => Text</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div id='ocrcanvas'></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type='button' class="btn btn-primary" onclick="OCRclear()"> Clear Canvas</button>
+                                <button type="button" class="btn btn-primary" onclick="OCRtext()">Convert</button>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+
+                    <!-- Download Button -->
+                    <div class="btn-group btn-group-lg dropup" role="group">
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" 
+                        aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-download mr-2" aria-hidden="true"></i>Download
+                        </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" onclick="Download('PNG')">Download as PNG</button>
+                            <button class="dropdown-item" onclick="Download('JPG')">Download as JPG</button>
+                        </div>
+                    </div>
+
+                    <!-- User Count-->
+                    <button type="button" class="btn btn-outline-primary" disabled>
+                        <span class="ml-auto" >No of users:<span id="content"></span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Konva Canvas Script File -->
+        <script src="canvas.js" type="text/javascript"></script>
+    </body>
+</html>

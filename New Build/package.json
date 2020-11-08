@@ -1,0 +1,16 @@
+{
+  "name": "trial",
+  "version": "1.0.0",
+  "description": "trail",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server"
+  },
+  "author": "rahul",
+  "license": "ISC"
+}
